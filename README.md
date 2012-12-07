@@ -1,10 +1,10 @@
 ﻿# bend-over
 
-A prison-based Turing Tarpit for the PLT Games.
+A prison-based Turing Tarpit for the PLT Games, December 2012.
 
-Ordinary stack- and register-based languages allow the machine to write and modify the tape of data arbitrarily, and that power is much too expensive to have in a state penitentiary. So, what can you do?
+Ordinary stack- and register-based languages allow the machine to write and modify the tape of data arbitrarily, and that power is much too expensive to have in a state penitentiary. So, what can you do? Just *bend over* and take it!
 
-Bend-over is a *band*-based programming language, in that it operates on a stack. This is like a Turing Machine tape, but it can be bent and folded over onto itself--indeed, to perform any sort of calculation, one is required to bend the band overtop of itself and flatten the values together!
+Bend-over is a *band*-based programming language, in that it operates on a band. This is like a Turing Machine tape, but it can be bent and folded over onto itself--indeed, to perform any sort of calculation, one is required to bend the band overtop of itself and flatten the values together!
 
 ## Language
 
@@ -33,7 +33,7 @@ Bend-over has a few major instructions for band manipulation.
     + Input is taken line-by-line, with the program waiting until a newline is received from the user before continuing.
     + Output is a direct feed to stdout, with all linebreak usage controlled by the program and not the implementation.
 + `d` is the dump pragma, which forces the interpreter to output the current state of the tape in a human-readable fashion, truncted three spaces after the last non-ε datum.
-    + State ε data may be represented as `0`, `""`, or `ε`; the choice is implementation-dependent.
+    + State ε data may be represented as `0`, `""`, `ε` or `e`; the choice is implementation-dependent.
     + This pragma is only avbailable in debug mode.
 
 The structure of the program itself is straightforward. The first line consists of the debug flag and the alphabet, and the rest of the program is the program instructions.
