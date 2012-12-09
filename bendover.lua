@@ -1,12 +1,13 @@
--- The BENDOVER Specification
+-- The BENDOVER Reference Implementation
 -- 
 -- Of course, the name of this language is a pun, both on the primary data mani-
 -- pulation mechanism, and the prison-rape-esque feeling of coding in such a
 -- language. That in mind, let's BEND OVER and take this piercing blow together!
+-- 
+-- Current gotchas:
+--   - numeric implemented as Lua numerics (double-precision)
 
-D, F = false, ...
-if string.sub(F, 1, 1) == "d" then D, F = ... end
-if F ~= "" then io.input(F) end
+EOL = "\n" -- preferred local end-of-line character(s)
 
 maxn = table.maxn or function (t)
   local x = 0
@@ -16,14 +17,30 @@ maxn = table.maxn or function (t)
   return x
 end
 
-function initialize (tape, n, s)
-  local tape = tape or {}
-  tape.x = { [0] = 0, }
-  tape.y = { [0] = 0, }
-  tape.v = { [0] = 0, }
-  tape.n = n or 1
+function char_iter (s, n)
+  local n = n + 1
+  if n > #s then return nil end
+  return n, string.sub(s, n, n)
+end
+
+function chars (s)
+  return char_iter, s, 0
+end
+
+function initialize (s)
+  local a, ab = {}, ""
+  for i,c in chars(s) do
+    if not a[c] then ab = ab .. c end
+    a[c] = true
+  end
   
-  for i=1,tape.n do tape.x[i], tape.y[i], tape.v[i] = i, 0, i end
+  local tape = {
+    x = { [0] = 0, 1, 2 },
+    y = { [0] = 0, 0, 0 },
+    v = { [0] = 0, 1, ab .. "\n" },
+    n = 2,
+    p = 0
+  }
   
   return setmetatable(tape, { __index = _G })
 end
@@ -90,8 +107,10 @@ function bendr (tape, num)
   return tape
 end
 
-function evaluate (tape)
-  
+function evaluate (tape, func, ...)
+  local char = func(...)
+  -- evaluation step
+  -- return evaluate(tape, func, ...)
 end
 
-evaluate(initialize({}, tonumber(io.read('*l'))))
+evaluate(initialize(io.read('*l')))
