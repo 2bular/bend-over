@@ -50,8 +50,8 @@ Bend-over has a few major instructions for band manipulation.
     + Strings are only converted to numbers if they begin with at least one decimal digit, otherwise they are cast to ε.
     + State ε is treated as `0` and not `""`, so it converts to `"0"`, i.e. the string containing only the zero character.
 + `+` and `x` are the sum and product flatteners. (see section '<a href="#Flatteners">Flatteners</a>') ((TODO -- add `p` permute values flattener?))
-+ `L` and `R` bend the tape 90 degrees in the specified direction.
-    + The cell closest to the origin is on the bottom of the overlapping stack; all bends technically fold overtop of the previous parts of the band.
++ `L` and `R` bend the tape 90 degrees in the specified direction. (Left and right from the point of view of the pointer, where outwards is forwards, e.g. left is above-wards.)
+    + The cell closest to the origin is on the bottom of the overlapping stack, should there be any overlaps; all bends technically fold overtop of the previous parts of the band.
     + The contents of the band will not be modified by crossing over until a flattener is used.
     + The anchored item at index 0 cannot be used as a pivot point for a bend.
 + `i` and `o` are the input and output pragmas, which allow for execution-time interaction with the user.
@@ -64,7 +64,7 @@ Bend-over has a few major instructions for band manipulation.
 USING @:
            ( 7 )-<-( 6 )-<-( 5 )                       ( 7 )-<-( 6 )-<-( 5 )
              v               ^                           v               ^
-   ( 1 )->-(2\8)->-( 3 )->-( 4 )  ==>  ( 1 )->-( 2 )->-(3\8)->-( 4 )->-( 4 )
+   ( 1 )->-(2\8)->-( 3 )->-( 4 )  ==>  ( 1 )->-( 2 )->-(3\8)->-( 4 )->-( 4 ) <<< cloned cell
              v              ^^^                          v      ^^^
            ( 9 )     pointer here                      ( 9 )   pointer here
 ```
@@ -92,28 +92,42 @@ Flatteners are global, and affect all overlapping entries. When a flattener is c
 
 There are two flatteners: *sum* and *product*, also referred to as addition and multiplication.
 
-The sum flattener, `+`, adds the contents of overlapping cells together.
+The **sum flattener**, `+`, adds the contents of overlapping cells together.
 
 + For two numbers, this is a simple sum.
 + For two strings, this is the concatenation of the first string and the second.
 + An ε-state added to anything leaves that thing unchanged, regardless of order. (This also applies to two ε-states added together, which results in another ε.)
-+ For a number added to a string or vice versa, the result is the string formed if the original string's characters' bytes are increased in value by the number. If the number is not an integer, then it is rounded down towards negative infinity. For instance, "7*Z" + 3 would result in ":-]". ((TODO -- check this out))
++ For a number added to a string or vice versa, the result is the string formed if the original string's characters' bytes are increased in value by the number. If the number is not an integer, then it is rounded down towards negative infinity. For instance, "`7*Z`" + 3 would result in "`:-]`".
 
-The product flattener, `x`, not only multiplies the contents of overlapping cells together, but also performs other useful duties.
+The **product flattener**, `x`, not only multiplies the contents of overlapping cells together, but also performs other useful duties.
 
 + For two numbers, this is their mathematical product. If one number or both are ε-states, the result is another ε-state.
-+ For two strings, this tests if they are equal. It returns 1 if they are, and an ε-state otherwise.
++ For two strings, this tests if the bottom is greater than the top. It returns 1 if they are, and an ε-state otherwise.
 + For a string and a number, or a string and an ε-state, this evaluates the contents of the string as program instructions, the number of times this is done dictated by the number. The result is the original string. See below.
 
 ### Product Flattener Execution
 
-Also known as simply 'executing'. When you multiply a string by a number, the contents of the string are executed as a Bend-over subroutine. If the number is not an integer, it is rounded down towards negative infinity. If the number is ε, no execution is performed. If the number is negative, its absolute value represents the number of nested subroutines to break out of. The rest of the original program or subroutine continues its execution when the subroutine finishes.
+Also known as simply 'executing'. When you multiply a string by a number, the contents of the string are executed as a Bend-over subroutine, with the number of times looped specified by the number. If the number is not an integer, it is rounded down towards negative infinity. If the number is ε, no execution is performed. If the number is negative, its absolute value represents the number of nested subroutines to break out of. The rest of the original program or subroutine continues its execution when the subroutine finishes.
 
 The "return result" of such a multiplication is technically the string used as the program. However, since the actual execution can modify the band and any value on it, including the string of the program that was just product-flattened, the "return value" *after the subroutine runs* can be whatever the subroutine leaves at that cell.
 
-Modifying the program string will not change the commands that the pointer will follow in mid-execution. However, you can remove or change the values of any pending multiplication, as well as set up new ones, provided they would occur further along the tape than the site of the current multiplication. The behaviour of multi-level stacks modified in the middle of a multiplication flattening is undefined and should not be relied upon.
+Modifying the program string will not change the commands that the pointer will follow mid-execution. However, you can remove or change the values of any pending multiplication, as well as set up new ones, provided they would occur further along the tape than the site of the current multiplication. The behaviour of multi-level stacks modified in the middle of a multiplication flattening is undefined and should not be relied upon.
 
-Because of the built-in ability for Bend-over to execute its own code, no conditional statements or other explicit looping mechanisms are provided. For any sort of looping or recursion, Bend-over the same stance as Muriel and Smurf: get acquainted with quines and pseudoquines.
+Because of the built-in ability for Bend-over to execute its own code, no conditional statements or other explicit looping mechanisms are provided. For any sort of looping or recursion, Bend-over takes the same stance as Muriel and Smurf: get acquainted with quines and pseudoquines.
+
+The exact mechanism of the multiplication is as follows. When a number `n` is multiplied by a string `s`...
+
++ The string is placed in the bottommost cell of the stack.
++ If `n` is not an integer, it is rounded down to negative infinity.
++ If `n` equals `ε`, the evaluation ends.
++ If `n` is positive,
+    + Concatenate `n` copies of `s` internally (`ss`).
+    + Evaluate the contents of `ss` as a Bend-over program.
+    + The evaluation ends.
++ If `n` is negative, 
+    + Break out of `n` nested subroutines.
+    + If the main execution routine is broken out of, treat it as though an exit pragma `e` is encountered.
+    + The evaluation ends.
 
 ## Practical Programming
 
@@ -122,14 +136,23 @@ Because Bend-over is so minimal, this section details some common design pattern
 ### Concepts
 
 + The tape can be bent into a loop, having a run of cells on top of another, and can even be "folded" backwards overtop of itself or zippered up by having tall stacks of repeatedly folded over data. This can be utilized to zip lists of values together, or to manipulate sequences together, but watch your bends.
-+ Obviously, subtraction and division are lacking from Bend-over. To perform either, use the split operator `$` on the subtrahend/divisor to negate/invert it, and then add/multiply the two values together to get the result. Note that this means a division by zero is equal to zero, i.e. ε. ((TODO -- decide if 1/0 should exist))
++ Obviously, subtraction and division are lacking from Bend-over. To perform either, use the split operator `$` on the subtrahend/divisor to negate/invert it, and then add/multiply the two values together to get the result. Note that this means a division by zero is equal to zero, i.e. ε.
 + To normalize a non-ε number to 1, multiply it by its reciprocal.  This can be done by cloning it and splitting the outward clone--or splitting it twice--then multiplying it by its reciprocal. Use the value in the middle as a way to extend the band to accomodate the multiplication, you can always delete it all afterwards. Attempting to normalize an ε-state results in another ε.
 + The typical convention for "boolean" data types is 1 for True and ε (i.e. zero) for False, as there is no builtin boolean datatype. String comparison (string-by-string multiplication) follows this, and the sum and product flatteners become logical operators AND and OR, respectively. (The result of OR needs to be normalized to one, but if you're performing multiple logical operations in a row before using the boolean elsewhere, the normalization can wait until after you finish.) The negation operation for this would be a numerical negation (through `$`) plus 1, but only if the number is normalized to 1/ε.
 + There is no operator for numeric equality! Subtract one number from the other, and normalize the result: you will have an ε-state if they are equal, and a `1` otherwise. Subtract this value from one to swap it.
 + There is also no conditional execution operator! Use the multiplication flattener on a string and a "boolean" to dictate whether or not something should be executed. An else could be constructed by simultaneously multiplying the logical negation by the else clause.
 + You can consider negative values for executions as break statements. Remember that it will go right back to continuing the multiplication flattening where it left off.
-+ Quines? Good luck and godspeed, you brave, brave soul. You cannot simply add whatever strings you please, because they can only be inserted through the alphabet and reconstruction. An elegant solution may arise from egregious band-bending, and the string transposition (summing a string and a number) may aid you, but don't count on it. ((TODO -- write a quine in bend-over and show everyone who's boss (ascii: @ 64, $ 36, / 47, c 99, L 76, R 82, + 43, x 120, > 62, < 60, # 35, \n 13) ))
-    + The way to handle any and all subroutines without quining would be to build the subroutines
++ Quines? Good luck and godspeed, you brave, brave soul. You cannot simply add whatever strings you please, because they can only be inserted through the alphabet and reconstruction. An elegant solution may arise from egregious band-bending, and the string transposition (summing a string and a number) may aid you, but don't count on it.
+    + The way to handle any and all subroutines without quining would be to build the all subroutines explicitly at the beginning of the program, and call them by folding integers (usually 1) over them.
+    + Fairly sure quines are next-to impossible. I invite any and all willing to try and do so. (ascii, for reference: @ 64, $ 36, / 47, c 99, L 76, R 82, + 43, x 120, > 62, < 60, # 35, \n 13)
++ To loop something a certain number of times, but also have a piece of code run the first time only, use a comment at the end of the program: since comments are parsed from the comment character to the next newline, and the string is exactly concatenated the number of times to make that number of loops, you can achieve a once only effect using code like `<once>\n<body>#`. If it was looped, it would be equivalent to the following program executing: (notice how the comments block out bits of code) ```
+<once>
+<body>#<once>
+<body>#<once>
+...
+<body>#<once>
+<body>#
+```
 
 ### Snippets
 
