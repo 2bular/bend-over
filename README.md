@@ -145,7 +145,8 @@ Because Bend-over is so minimal, this section details some common design pattern
 + Quines? Good luck and godspeed, you brave, brave soul. You cannot simply add whatever strings you please, because they can only be inserted through the alphabet and reconstruction. An elegant solution may arise from egregious band-bending, and the string transposition (summing a string and a number) may aid you, but don't count on it.
     + The way to handle any and all subroutines without quining would be to build the all subroutines explicitly at the beginning of the program, and call them by folding integers (usually 1) over them.
     + Fairly sure quines are next-to impossible. I invite any and all willing to try and do so. (ascii, for reference: @ 64, $ 36, / 47, c 99, L 76, R 82, + 43, x 120, > 62, < 60, # 35, \n 13)
-+ To loop something a certain number of times, but also have a piece of code run the first time only, use a comment at the end of the program: since comments are parsed from the comment character to the next newline, and the string is exactly concatenated the number of times to make that number of loops, you can achieve a once only effect using code like `<once>\n<body>#`. If it was looped, it would be equivalent to the following program executing: (notice how the comments block out bits of code) ```
++ To loop something a certain number of times, but also have a piece of code run the first time only, use a comment at the end of the program: since comments are parsed from the comment character to the next newline, and the string is exactly concatenated the number of times to make that number of loops, you can achieve a once only effect using code like `<once>\n<body>#`. If it was looped, it would be equivalent to the following program executing: (notice how the comments block out bits of code)
+```
 <once>
 <body>#<once>
 <body>#<once>
